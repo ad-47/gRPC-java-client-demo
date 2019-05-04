@@ -3,9 +3,9 @@ syntax = "proto3";
 package com.anand.grpc;
 
 message User {
-	string id = 1;
-	string name = 2;
-	repeated string hobbies = 3;
+    string id = 1;
+    string name = 2;
+    repeated string hobbies = 3;
 }
 
 // Request payload
@@ -13,31 +13,30 @@ message AddUserRequest {
 // Each message attribute is strongly typed.
 // You also must assign a "tag" number.
 // Each tag number is unique within the message.
-	string name = 1;
+    string name = 1;
 
-	// This defines a strongly typed list of String
-	repeated string hobbies = 2;
+    // This defines a strongly typed list of String
+    repeated string hobbies = 2;
 
-	// There are many more basics types, like Enum, Map
-	// See https://developers.google.com/protocol-buffers/docs/proto3
-	// for more information.
-	message Response {
-		User user = 1;
-	}
-
+    // There are many more basics types, like Enum, Map
+    // See https://developers.google.com/protocol-buffers/docs/proto3
+    // for more information.
+    message Response {
+        User user = 1;
+    }
 }
 
 message GetAllUserRequest {
-	message Response {
-		repeated User user = 1;
-	}
-
+    message Response {
+        repeated User users = 1;
+        User user = 2;
+    }
 }
 
 // Defining a Service, a Service can have multiple RPC operations
 service UserService {
 // Define a RPC operation
-	rpc addUser (AddUserRequest) returns (AddUserRequest.Response);
-	rpc getAllUser (GetAllUserRequest) returns (GetAllUserRequest.Response);
-	rpc getAllUserWithStream (GetAllUserRequest) returns (stream GetAllUserRequest.Response);
+    rpc addUser (AddUserRequest) returns (AddUserRequest.Response);
+    rpc getAllUser (GetAllUserRequest) returns (GetAllUserRequest.Response);
+    rpc getAllUserWithStream (GetAllUserRequest) returns (stream GetAllUserRequest.Response);
 }
