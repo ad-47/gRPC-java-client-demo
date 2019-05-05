@@ -33,10 +33,21 @@ message GetAllUserRequest {
     }
 }
 
+message GetUserByIdRequest {
+
+	string userId = 1;
+	 
+    message Response {
+        User user = 1;
+    }
+}
+
 // Defining a Service, a Service can have multiple RPC operations
 service UserService {
 // Define a RPC operation
     rpc addUser (AddUserRequest) returns (AddUserRequest.Response);
     rpc getAllUser (GetAllUserRequest) returns (GetAllUserRequest.Response);
     rpc getAllUserWithStream (GetAllUserRequest) returns (stream GetAllUserRequest.Response);
+    
+    rpc getUserById (GetUserByIdRequest) returns (GetUserByIdRequest.Response);
 }

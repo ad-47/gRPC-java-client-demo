@@ -11,6 +11,7 @@ import com.anand.grpc.UserServiceGrpc.UserServiceStub;
 import com.anand.grpc.UserServiceOuterClass.AddUserRequest;
 import com.anand.grpc.UserServiceOuterClass.GetAllUserRequest;
 import com.anand.grpc.UserServiceOuterClass.GetAllUserRequest.Response;
+import com.anand.grpc.UserServiceOuterClass.GetUserByIdRequest;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -37,6 +38,15 @@ public class App {
       case 1:
         getAllUserWithStream(channel);
         break;
+        
+      case 2:
+    	  /**
+    	   * Call method which fetch user from server for given userId.
+    	   */
+          getUserById(channel);
+          channel.shutdown();
+          break;
+          
       default:
         getAllUser(channel);
         // A Channel should be shutdown before stopping the process.
@@ -121,4 +131,19 @@ public class App {
           }
         });
   }
+  
+	/**
+	 * This method will get user for given userId. 
+	 * @param channel
+	 */
+	private static void getUserById(ManagedChannel channel) {
+
+	    UserServiceBlockingStub blockingStub = UserServiceGrpc.newBlockingStub(channel);
+	    String id = "1";
+	    GetUserByIdRequest request = GetUserByIdRequest.newBuilder().setUserId(id).build();
+	    GetUserByIdRequest.Response response = blockingStub.getUserById(request);
+
+	    logger.log(Level.INFO, "User userId:" + id);
+	    logger.log(Level.INFO, "User userObject : \n" + response.getUser());
+    }
 }
