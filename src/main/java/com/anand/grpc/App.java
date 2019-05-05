@@ -11,7 +11,7 @@ import com.anand.grpc.UserServiceGrpc.UserServiceStub;
 import com.anand.grpc.UserServiceOuterClass.AddUserRequest;
 import com.anand.grpc.UserServiceOuterClass.GetAllUserRequest;
 import com.anand.grpc.UserServiceOuterClass.GetAllUserRequest.Response;
-
+import com.anand.grpc.UserServiceOuterClass.GetUserByIdRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -36,6 +36,10 @@ public class App {
         break;
       case 1:
         getAllUserWithStream(channel);
+        break;
+      case 2:
+        getUserById(channel);
+        channel.shutdown();
         break;
       default:
         getAllUser(channel);
@@ -120,5 +124,16 @@ public class App {
             channel.shutdownNow();
           }
         });
+  }
+  
+  private static void getUserById(ManagedChannel channel) {
+    
+    UserServiceBlockingStub blockingStub = UserServiceGrpc.newBlockingStub(channel);
+    String id = "1";
+    GetUserByIdRequest request = GetUserByIdRequest.newBuilder().setId(id).build();
+    GetUserByIdRequest.Response response = blockingStub.getUserById(request);
+    
+    logger.log(Level.INFO, "User Info for user Id:" + id);
+    logger.log(Level.INFO, "User Info : \n" + response.getUser());
   }
 }
