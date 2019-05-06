@@ -6,119 +6,139 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.anand.grpc.PersonServiceGrpc.PersonServiceBlockingStub;
+import com.anand.grpc.PersonServiceOuterClass.AddPersonRequest;
+import com.anand.grpc.PersonServiceOuterClass.Person;
 import com.anand.grpc.UserServiceGrpc.UserServiceBlockingStub;
 import com.anand.grpc.UserServiceGrpc.UserServiceStub;
 import com.anand.grpc.UserServiceOuterClass.AddUserRequest;
+import com.anand.grpc.UserServiceOuterClass.AddUserRequest.Builder;
 import com.anand.grpc.UserServiceOuterClass.GetAllUserRequest;
 import com.anand.grpc.UserServiceOuterClass.GetAllUserRequest.Response;
+import com.anand.grpc.UserServiceOuterClass.User;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
-/** Call grpc server using port 8080 */
+/**
+ * Call grpc server using port 8080
+ *
+ */
 public class App {
 
-  private static Logger logger = Logger.getLogger(App.class.getName());
+	private static Logger logger = Logger.getLogger(App.class.getName());
 
-  public static void main(String[] args) {
+	public static void main(String[] args) {
 
-    // Channel is the abstraction to connect to a service endpoint
-    // Let's use plaintext communication because we don't have certs
-    final ManagedChannel channel =
-        ManagedChannelBuilder.forTarget("localhost:8080").usePlaintext().build();
+		// Channel is the abstraction to connect to a service endpoint
+		// Let's use plaintext communication because we don't have certs
+		final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:8080").usePlaintext().build();
 
-    switch (Integer.parseInt(args[0])) {
-      case 0:
-        addUser(channel);
-        // A Channel should be shutdown before stopping the process.
-        channel.shutdown();
-        break;
-      case 1:
-        getAllUserWithStream(channel);
-        break;
-      default:
-        getAllUser(channel);
-        // A Channel should be shutdown before stopping the process.
-        channel.shutdown();
-        break;
-    }
-  }
+		switch (Integer.parseInt(args[0])) {
+		case 0:
+			addUser(channel);
+			// A Channel should be shutdown before stopping the process.
+			channel.shutdown();
+			break;
+		case 1:
+			getAllUserWithStream(channel);
+			break;
+		case 2:
+			addPerson(channel);
+			break;
+		default:
+			getAllUser(channel);
+			// A Channel should be shutdown before stopping the process.
+			channel.shutdown();
+			break;
+		}
 
-  private static void addUser(ManagedChannel channel) {
-    // It is up to the client to determine whether to block the call
-    // Here we create a blocking stub, but an async stub,
-    // or an async stub with Future are always possible.
-    UserServiceBlockingStub blockingStub = UserServiceGrpc.newBlockingStub(channel);
+	}
 
-    List<String> hobbies = new ArrayList<>();
-    hobbies.add("Coding " + Math.random());
-    hobbies.add("Playing PubG" + Math.random());
-    hobbies.add("Cycling" + Math.random());
-    String userName = "Anand Jakhaniya " + UUID.randomUUID().toString();
-    AddUserRequest request =
-        AddUserRequest.newBuilder().setName(userName).addAllHobbies(hobbies).build();
+	private static void addPerson(ManagedChannel channel) {
+		PersonServiceBlockingStub personServiceBlockingStub = PersonServiceGrpc.newBlockingStub(channel);
+		List<String> hobbies = new ArrayList<>();
+		hobbies.add("Coding " + Math.random());
+		hobbies.add("Playing PubG" + Math.random());
+		hobbies.add("Cycling" + +Math.random());
+		User user = User.newBuilder().setName("RV").addAllHobbies(hobbies).build();
+		AddPersonRequest build = AddPersonRequest.newBuilder().setName("Ravi Sapariya").setUser(user).build();
+		AddPersonRequest.Response response = personServiceBlockingStub.addPerson(build);
+		logger.log(Level.INFO, "Person Info : " + response.getPerson());
+	}
 
-    // Finally, make the call using the stub
-    AddUserRequest.Response response = blockingStub.addUser(request);
-    logger.log(Level.INFO, "User added successfully ");
-    logger.log(Level.INFO, "User Info : \n" + response.getUser());
-  }
+	private static void addUser(ManagedChannel channel) {
+		// It is up to the client to determine whether to block the call
+		// Here we create a blocking stub, but an async stub,
+		// or an async stub with Future are always possible.
+		UserServiceBlockingStub blockingStub = UserServiceGrpc.newBlockingStub(channel);
 
-  private static void getAllUser(ManagedChannel channel) {
-    // It is up to the client to determine whether to block the call
-    // Here we create a blocking stub, but an async stub,
-    // or an async stub with Future are always possible.
-    UserServiceBlockingStub blockingStub = UserServiceGrpc.newBlockingStub(channel);
+		List<String> hobbies = new ArrayList<>();
+		hobbies.add("Coding " + Math.random());
+		hobbies.add("Playing PubG" + Math.random());
+		hobbies.add("Cycling" + +Math.random());
+		String userName = "Anand Jakhaniya " + UUID.randomUUID().toString();
+		AddUserRequest request = AddUserRequest.newBuilder().setName(userName).addAllHobbies(hobbies).build();
 
-    GetAllUserRequest request = GetAllUserRequest.newBuilder().build();
+		// Finally, make the call using the stub
+		AddUserRequest.Response response = blockingStub.addUser(request);
+		logger.log(Level.INFO, "User added successfully ");
+		logger.log(Level.INFO, "User Info : " + response.getUser());
+	}
 
-    // Finally, make the call using the stub
-    GetAllUserRequest.Response response = blockingStub.getAllUser(request);
-    logger.log(Level.INFO, "User getting successfully ");
-    logger.log(Level.INFO, "User Info List : \n" + response.getUsersList());
-  }
+	private static void getAllUser(ManagedChannel channel) {
+		// It is up to the client to determine whether to block the call
+		// Here we create a blocking stub, but an async stub,
+		// or an async stub with Future are always possible.
+		UserServiceBlockingStub blockingStub = UserServiceGrpc.newBlockingStub(channel);
 
-  private static void getAllUserWithStream(ManagedChannel channel) {
-    // It is up to the client to determine whether to block the call
-    // Here we create a blocking stub, but an async stub,
-    // or an async stub with Future are always possible.
-    UserServiceStub stub = UserServiceGrpc.newStub(channel);
+		GetAllUserRequest request = GetAllUserRequest.newBuilder().build();
 
-    logger.log(Level.INFO, "Client getAllUserWithStream ");
+		// Finally, make the call using the stub
+		GetAllUserRequest.Response response = blockingStub.getAllUser(request);
+		logger.log(Level.INFO, "User getting successfully ");
+		logger.log(Level.INFO, "User Info List : " + response.getUserList());
+	}
 
-    GetAllUserRequest request = GetAllUserRequest.newBuilder().build();
-    stub.getAllUserWithStream(
-        request,
-        new StreamObserver<GetAllUserRequest.Response>() {
+	private static void getAllUserWithStream(ManagedChannel channel) {
+		// It is up to the client to determine whether to block the call
+		// Here we create a blocking stub, but an async stub,
+		// or an async stub with Future are always possible.
+		UserServiceStub stub = UserServiceGrpc.newStub(channel);
 
-          @Override
-          public void onNext(Response value) {
-            logger.log(Level.INFO, "User getting successfully ");
-            logger.log(Level.INFO, "User Info : \n" + value.getUser());
-            try {
-              Thread.sleep(2000);
-            } catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-              logger.log(Level.WARNING, "Thread interrupted", e);
-            }
-          }
+		logger.log(Level.INFO, "Client getAllUserWithStream ");
 
-          @Override
-          public void onError(Throwable t) {
-            logger.log(Level.WARNING, t.getMessage());
-          }
+		GetAllUserRequest request = GetAllUserRequest.newBuilder().build();
+		stub.getAllUserWithStream(request, new StreamObserver<GetAllUserRequest.Response>() {
 
-          @Override
-          public void onCompleted() {
-            logger.log(Level.INFO, "Getting all users successfully");
-            logger.log(Level.INFO, "Task completed");
+			@Override
+			public void onNext(Response value) {
+				logger.log(Level.INFO, "User getting successfully ");
+				logger.log(Level.INFO, "User Info List : " + value.getUserList());
+				try {
+	                Thread.sleep(2000);
+	            } catch (InterruptedException e) {
+	                Thread.currentThread().interrupt(); 
+	                logger.log(Level.WARNING, "Thread interrupted", e); 
+	            }
+			}
 
-            // Typically you'll shutdown the channel somewhere else.
-            // But for the purpose of the lab, we are only making a single
-            // request. We'll shutdown as soon as this request is done.
-            channel.shutdownNow();
-          }
-        });
-  }
+			@Override
+			public void onError(Throwable t) {
+				logger.log(Level.WARNING, t.getMessage());
+			}
+
+			@Override
+			public void onCompleted() {
+				logger.log(Level.INFO, "Getting all users successfully");
+				logger.log(Level.INFO, "Task completed");
+
+				// Typically you'll shutdown the channel somewhere else.
+				// But for the purpose of the lab, we are only making a single
+				// request. We'll shutdown as soon as this request is done.
+				channel.shutdownNow();
+			}
+		});
+	}
 }
